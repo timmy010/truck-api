@@ -1,3 +1,4 @@
 <?php
 
-echo 'start';
+require 'vendor/autoload.php';
+require 'src/router.php';
