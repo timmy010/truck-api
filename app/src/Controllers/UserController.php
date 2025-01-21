@@ -6,16 +6,32 @@ use App\Services\UserService;
 
 class UserController
 {
-    private $userService;
+    protected UserService $userService;
 
-    public function __construct(UserService $userService)
+    public function __construct()
     {
-        $this->userService = $userService;
+        $this->userService = new UserService();
     }
 
-    public function create()
+    public function registerUser($request)
     {
-        $user = $this->userService->createUser("New User");
-        return "User created with ID: " . $user->getId();
+        $data = $request->getParsedBody();
+        $this->userService->registerUser($data);
+    }
+
+    public function getUserById($id)
+    {
+        return $this->userService->getUserById($id);
+    }
+
+    public function updateUser($id, $request)
+    {
+        $data = $request->getParsedBody();
+        $this->userService->updateUser($id, $data);
+    }
+
+    public function deleteUser($id)
+    {
+        $this->userService->deleteUser($id);
     }
 }

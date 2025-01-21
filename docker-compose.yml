@@ -4,15 +4,17 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: fpm/Dockerfile
     container_name: php_app
     volumes:
         - ./app:/var/www/html
+        - ./.env:/var/www/html/.env
     networks:
         - app-network
     depends_on:
         - redis
         - rabbitmq
+        - postgres
 
   nginx:
     image: nginx:latest

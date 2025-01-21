@@ -2,39 +2,41 @@
 
 namespace App\Controllers;
 
-use App\Services\OrderServiceInterface;
-use App\Services\RedisService;
-use App\Services\RabbitMQService;
+use App\Services\OrderService;
 
 class OrderController
 {
-    private $orderService;
-    private $redisService;
-    private $rabbitMQService;
+    protected OrderService $orderService;
 
-    public function __construct(OrderServiceInterface $orderService, RedisService $redisService, RabbitMQService $rabbitMQService)
+    public function __construct()
     {
         $this->orderService = new OrderService();
-        $this->redisService = new RedisService();
-        $this->rabbitMQService = new RabbitMQService();
     }
 
-    public function index()
+    public function createOrder($request)
     {
-        // Пример использования Redis
-        $this->redisService->setValue('order_list', 'List of orders');
-        $orders = $this->redisService->getValue('order_list');
-
-        return $orders;
+        $data = $request->getParsedBody();
+        $this->orderService->createOrder($data);
     }
 
-    public function create()
+    public function getAllOrders()
     {
-        $order = $this->orderService->createOrder("New Order");
+        return $this->orderService->getAllOrders();
+    }
 
-        // Пример использования RabbitMQ
-        $this->rabbitMQService->publishMessage('order_queue', 'Order created: ' . $order->getId());
+    public function getUserOrders($userId)
+    {
+        return $this->orderService->getOrdersByUserId($userId);
+    }
 
-        return "Order created with ID: " . $order->getId();
+    public function updateOrder($id, $request)
+    {
+        $data = $request->getParsedBody();
+        $this->orderService->update($id, $data);
+    }
+
+    public function deleteOrder($id)
+    {
+        $this->orderService->delete($id);
     }
 }
