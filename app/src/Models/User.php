@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+
 use App\Database;
 use App\Interfaces\UserInterface;
 use InvalidArgumentException;
@@ -9,14 +10,13 @@ use InvalidArgumentException;
 class User implements UserInterface
 {
     protected $db;
-    protected $table = 'users';
+    protected string $table = 'users';
 
     public function __construct()
     {
         $this->db = (new Database())->getConnection();
     }
 
-    // Create a new user
     public function create(array $data)
     {
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (name, email, password_hash, role, created_at, updated_at) 
@@ -25,24 +25,21 @@ class User implements UserInterface
         return $this->db->lastInsertId();
     }
 
-    // Retrieve all users
     public function getAll()
     {
         $stmt = $this->db->query("SELECT * FROM {$this->table}");
         return $stmt->fetchAll();
     }
 
-    // Retrieve a specific user by ID
     public function getById(int $id)
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = :id");
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetch();
-        return $result ? $result : null;
+        return $result ?: null;
     }
 
-    // Update a user (PUT: full update)
-    public function update(int $id, array $data)
+    public function update(int $id, array $data): bool
     {
         if (!isset($data['name'], $data['email'], $data['password_hash'], $data['role'])) {
             throw new InvalidArgumentException('Missing required fields for update.');
@@ -56,7 +53,6 @@ class User implements UserInterface
         return $stmt->execute($data);
     }
 
-    // Partially update a user (PATCH: partial update)
     public function patch(int $id, array $data)
     {
         // Build the update statement dynamically
@@ -78,7 +74,6 @@ class User implements UserInterface
         return $stmt->execute($data);
     }
 
-    // Delete a user
     public function delete(int $id)
     {
         $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE id = :id");

@@ -1,5 +1,6 @@
-.idea/
+.idea
 .env
 local_pgdata/
 local_pgadmin-dаta/
 app/vendor/
+**/logs

@@ -2,18 +2,24 @@
 
 namespace App\Services;
 
+use AllowDynamicProperties;
 use App\Models\User;
 use App\Models\Order;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use App\Loggers\UserLogger;
 
 class UserService
 {
-    protected $userModel;
-    protected $orderModel;
+    protected User $userModel;
+    protected Order $orderModel;
+    protected UserLogger $logger;
 
     public function __construct()
     {
         $this->userModel = new User();
         $this->orderModel = new Order();
+        $this->logger = new UserLogger(__DIR__ . '/../logs/user.log');
     }
 
     public function registerUser(array $data)
@@ -33,9 +39,10 @@ class UserService
         return $this->userModel->getById($id);
     }
 
-    public function updateUser(int $id, array $data)
+    public function updateUser(int $id, array $data): ?array
     {
         $existingUser = $this->userModel->getById($id);
+        $this->logger->logInfo('updateUser', ['$existingUser' => $existingUser]);
 
         if ($existingUser) {
             $updatedData = array_merge($existingUser, $data);
@@ -47,12 +54,19 @@ class UserService
                 'role' => $updatedData['role'],
             ];
 
-            // Update the user with filtered data
-            $this->userModel->update($id, $filteredData);
+            $this->logger->logInfo('updateUser', ['$filteredData' => $filteredData]);
+
+            $resultUpdate = $this->userModel->update($id, $filteredData);
+            $this->logger->logInfo('updateUser', ['result' => $resultUpdate]);
+
+            if ($resultUpdate)  {
+                return $this->userModel->getById($id);
+            }
         }
+        return null;
     }
 
-    public function deleteUser(int $id)
+    public function deleteUser(int $id): void
     {
         $this->userModel->delete($id);
     }

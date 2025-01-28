@@ -1,13 +1,27 @@
 <?php
 
-require 'vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 use App\Controllers\UserController;
 use App\Controllers\OrderController;
 use App\Controllers\ProfileController;
 use App\Controllers\AdminRolePermissionController;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Factory\AppFactory;
 
-$app = new \Slim\App();
+$app = AppFactory::create();
+
+$app->addErrorMiddleware(true, false, false);
+$app->addBodyParsingMiddleware();
+
+$app->add(function (Request $request, RequestHandlerInterface $handler): Response {
+    return $handler->handle($request)
+        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Headers', 'Content-Type')
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+});
 
 // User Routes
 $userController = new UserController();
@@ -35,5 +49,7 @@ $app->post('/admin/permissions', [$adminRolePermissionController, 'assignPermiss
 $app->get('/admin/permissions', [$adminRolePermissionController, 'getAllPermissions']);
 $app->get('/admin/permissions/{adminId}', [$adminRolePermissionController, 'getPermissionsByAdminId']);
 $app->delete('/admin/permissions/{id}', [$adminRolePermissionController, 'deletePermission']);
+
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
 $app->run();

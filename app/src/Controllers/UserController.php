@@ -3,35 +3,97 @@
 namespace App\Controllers;
 
 use App\Services\UserService;
+use Exception;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use GuzzleHttp\Psr7\Utils;
+use App\Loggers\UserLogger;
 
-class UserController
+class UserController extends AbstractController
 {
     protected UserService $userService;
 
+    protected UserLogger $logger;
+
     public function __construct()
     {
+        parent::__construct();
         $this->userService = new UserService();
+
+        $this->logger = new UserLogger(__DIR__ . '/../logs/user.log');
     }
 
-    public function registerUser($request)
+    public function registerUser(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        $this->userService->registerUser($data);
+        $this->logger->logInfo('registerUserRequestData', [$data]);
+
+        if (!isset($data['name'], $data['email'], $data['password'], $data['role'])) {
+            return $response->withStatus(400)->withBody(Utils::streamFor('Invalid input'));
+        }
+
+        try {
+            $userId = $this->userService->registerUser($data);
+            $this->logger->logInfo('User registered successfully', ['user_id' => $userId]);
+
+            return $this->prepareJsonResponse($response, ['user_id' => $userId]);
+        } catch (Exception $e) {
+            $this->logger->logError('User registration failed', ['error' => $e->getMessage()]);
+            return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
+        }
     }
 
-    public function getUserById($id)
+    public function getUserById(Request $request, Response $response, $args): Response
     {
-        return $this->userService->getUserById($id);
+        try {
+            $user = $this->userService->getUserById($args['id']);
+
+            if ($user) {
+                $response->getBody()->write(json_encode($user));
+                return $response->withHeader('Content-Type', 'application/json');
+            }
+
+            return $response->withStatus(404)->withBody(Utils::streamFor('Not Found'));
+        } catch (Exception $e) {
+            $this->logger->logError('Get user failed', ['error' => $e->getMessage()]);
+            return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
+        }
     }
 
-    public function updateUser($id, $request)
+    public function updateUser(Request $request, Response $response, $args): Response
     {
-        $data = $request->getParsedBody();
-        $this->userService->updateUser($id, $data);
+        try {
+            $data = $request->getParsedBody();
+            $this->logger->logInfo('User update', ['data' => $data, 'id' => $args['id']]);
+            $user = $this->userService->updateUser($args['id'], $data);
+
+            if ($user) {
+                $response->getBody()->write(json_encode($user));
+                return $response->withHeader('Content-Type', 'application/json');
+            }
+
+            return $response->withStatus(204)->withBody(Utils::streamFor('Not Updated'));
+        } catch (Exception $e) {
+            $this->logger->logError('Update user failed', ['error' => $e->getMessage()]);
+            return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
+        }
     }
 
-    public function deleteUser($id)
+    public function deleteUser(Request $request, Response $response, $args): Response
     {
-        $this->userService->deleteUser($id);
+        try {
+            $this->logger->logInfo('User delete', ['id' => $args['id']]);
+
+            $user = $this->userService->getUserById($args['id']);
+            if ($user) {
+                $this->userService->deleteUser($args['id']);
+                return $response->withStatus(200)->withBody(Utils::streamFor('User deleted'));
+            }
+
+            return $response->withStatus(404)->withBody(Utils::streamFor('User Not Found'));
+        } catch (Exception $e) {
+            $this->logger->logError('Update user failed', ['error' => $e->getMessage()]);
+            return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
+        }
     }
 }
