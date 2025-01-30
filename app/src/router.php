@@ -26,6 +26,7 @@ $app->add(function (Request $request, RequestHandlerInterface $handler): Respons
 // User Routes
 $userController = new UserController();
 $app->post('/users', [$userController, 'registerUser']);
+$app->get('/users/', [$userController, 'getUsers']);
 $app->get('/users/{id}', [$userController, 'getUserById']);
 $app->put('/users/{id}', [$userController, 'updateUser']);
 $app->delete('/users/{id}', [$userController, 'deleteUser']);

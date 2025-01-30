@@ -43,6 +43,23 @@ class UserController extends AbstractController
         }
     }
 
+    public function getUsers(Request $request, Response $response, $args): Response
+    {
+        try {
+            $users = $this->userService->getAllUsers();
+
+            if (count($users) > 0) {
+                $response->getBody()->write(json_encode($users));
+                return $response->withHeader('Content-Type', 'application/json');
+            }
+
+            return $response->withStatus(404)->withBody(Utils::streamFor('Not Found'));
+        } catch (Exception $e) {
+            $this->logger->logError('Get all users failed', ['error' => $e->getMessage()]);
+            return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
+        }
+    }
+
     public function getUserById(Request $request, Response $response, $args): Response
     {
         try {
