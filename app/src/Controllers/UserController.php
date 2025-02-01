@@ -26,7 +26,6 @@ class UserController extends AbstractController
     public function registerUser(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        $this->logger->logInfo('registerUserRequestData', [$data]);
 
         if (!isset($data['name'], $data['email'], $data['password'], $data['role'])) {
             return $response->withStatus(400)->withBody(Utils::streamFor('Invalid input'));
@@ -99,8 +98,6 @@ class UserController extends AbstractController
     public function deleteUser(Request $request, Response $response, $args): Response
     {
         try {
-            $this->logger->logInfo('User delete', ['id' => $args['id']]);
-
             $user = $this->userService->getUserById($args['id']);
             if ($user) {
                 $this->userService->deleteUser($args['id']);

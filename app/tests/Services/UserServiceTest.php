@@ -17,9 +17,12 @@ class UserServiceTest extends TestCase
 
     public function testRegisterUser()
     {
+        $randomName = 'User_' . bin2hex(random_bytes(5)); // Random name
+        $randomEmail = $randomName . '@example.com'; // Random email based on the name
+
         $data = [
-            'name' => 'New User',
-            'email' => 'newuser@example.com',
+            'name' => $randomName,
+            'email' => $randomEmail,
             'password' => 'password123',
             'role' => 'customer'
         ];
@@ -28,8 +31,8 @@ class UserServiceTest extends TestCase
 
         $user = $this->userService->getUserById($userId);
         $this->assertNotNull($user);
-        $this->assertEquals('New User', $user['name']);
-        $this->assertEquals('newuser@example.com', $user['email']);
+        $this->assertEquals($randomName, $user['name']);
+        $this->assertEquals($randomEmail, $user['email']);
 
         $this->userService->deleteUser($userId);
     }

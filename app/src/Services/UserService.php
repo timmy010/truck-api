@@ -2,11 +2,8 @@
 
 namespace App\Services;
 
-use AllowDynamicProperties;
 use App\Models\User;
 use App\Models\Order;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
 use App\Loggers\UserLogger;
 
 class UserService

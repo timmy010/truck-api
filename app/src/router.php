@@ -5,15 +5,16 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Controllers\UserController;
 use App\Controllers\OrderController;
 use App\Controllers\ProfileController;
-use App\Controllers\AdminRolePermissionController;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Exception\HttpNotFoundException;
 use Slim\Factory\AppFactory;
+use Slim\Routing\RouteCollectorProxy;
+use Slim\Psr7\Response as SlimResponse;
 
 $app = AppFactory::create();
 
-$app->addErrorMiddleware(true, false, false);
 $app->addBodyParsingMiddleware();
 
 $app->add(function (Request $request, RequestHandlerInterface $handler): Response {
@@ -23,34 +24,41 @@ $app->add(function (Request $request, RequestHandlerInterface $handler): Respons
         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 });
 
-// User Routes
-$userController = new UserController();
-$app->post('/users', [$userController, 'registerUser']);
-$app->get('/users/', [$userController, 'getUsers']);
-$app->get('/users/{id}', [$userController, 'getUserById']);
-$app->put('/users/{id}', [$userController, 'updateUser']);
-$app->delete('/users/{id}', [$userController, 'deleteUser']);
+$app->group('/api/v1', function (RouteCollectorProxy $group) {
+    $group->group('/users', function (RouteCollectorProxy $group) {
+        $userController = new UserController();
+        $group->post('', [$userController, 'registerUser']);
+        $group->get('', [$userController, 'getUsers']);
+        $group->get('/{id}', [$userController, 'getUserById']);
+        $group->put('/{id}', [$userController, 'updateUser']);
+        $group->delete('/{id}', [$userController, 'deleteUser']);
+    });
 
-// Order Routes
-$orderController = new OrderController();
-$app->post('/orders', [$orderController, 'createOrder']);
-$app->get('/orders', [$orderController, 'getAllOrders']);
-$app->get('/users/{id}/orders', [$orderController, 'getUserOrders']);
+    $group->group('/profiles', function (RouteCollectorProxy $group) {
+        $profileController = new ProfileController();
+        $group->post('', [$profileController, 'createProfile']);
+        $group->get('', [$profileController, 'getProfiles']);
+        $group->get('/{userId}', [$profileController, 'getProfileByUserId']);
+        $group->put('/{id}', [$profileController, 'updateProfile']);
+        $group->delete('/{id}', [$profileController, 'deleteProfile']);
+    });
 
-// Profile Routes
-$profileController = new ProfileController();
-$app->post('/profiles', [$profileController, 'createProfile']);
-$app->get('/profiles/{userId}', [$profileController, 'getProfileByUserId']);
-$app->put('/profiles/{id}', [$profileController, 'updateProfile']);
-$app->delete('/profiles/{id}', [$profileController, 'deleteProfile']);
-
-// Admin Role Permission Routes
-$adminRolePermissionController = new AdminRolePermissionController();
-$app->post('/admin/permissions', [$adminRolePermissionController, 'assignPermission']);
-$app->get('/admin/permissions', [$adminRolePermissionController, 'getAllPermissions']);
-$app->get('/admin/permissions/{adminId}', [$adminRolePermissionController, 'getPermissionsByAdminId']);
-$app->delete('/admin/permissions/{id}', [$adminRolePermissionController, 'deletePermission']);
+    $group->group('/orders', function (RouteCollectorProxy $group) {
+        $orderController = new OrderController();
+        $group->post('', [$orderController, 'createOrder']);
+        $group->get('', [$orderController, 'getAllOrders']);
+    });
+});
 
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+$errorMiddleware->setErrorHandler(
+    HttpNotFoundException::class,
+    function (Request $request, Throwable $exception, bool $displayErrorDetails) {
+        $response = new SlimResponse();
+        $response->getBody()->write('404 NOT FOUND');
+        return $response->withStatus(404);
+    }
+);
 
 $app->run();

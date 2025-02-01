@@ -6,19 +6,19 @@ use App\Models\Profile;
 
 class ProfileService
 {
-    protected $profileModel;
+    protected Profile $profileModel;
 
     public function __construct()
     {
         $this->profileModel = new Profile();
     }
 
-    public function createProfile(array $data)
+    public function createProfile(array $data): false|string
     {
-        $this->profileModel->create($data);
+        return $this->profileModel->create($data);
     }
 
-    public function getAllProfiles()
+    public function getProfiles(): false|array
     {
         return $this->profileModel->getAll();
     }
@@ -28,13 +28,18 @@ class ProfileService
         return $this->profileModel->getByUserId($userId);
     }
 
-    public function updateProfile(int $id, array $data)
+    public function getProfileById(int $id)
+    {
+        return $this->profileModel->getById($id);
+    }
+
+    public function updateProfile(int $id, array $data): void
     {
         $this->profileModel->update($id, $data);
     }
 
-    public function deleteProfile(int $id)
+    public function deleteProfile(int $id): bool
     {
-        $this->profileModel->delete($id);
+        return $this->profileModel->delete($id);
     }
 }
