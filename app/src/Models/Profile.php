@@ -7,7 +7,7 @@ use App\Interfaces\ProfileInterface;
 use InvalidArgumentException;
 use PDO;
 
-class Profile implements ProfileInterface
+class Profile
 {
     protected PDO $db;
     protected string $table = 'profiles';

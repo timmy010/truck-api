@@ -12,17 +12,16 @@ class CreateOrdersTable
         $sql = "
         CREATE TABLE IF NOT EXISTS orders (
             id SERIAL PRIMARY KEY,
-            customer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            customer_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
             carrier_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-            pickup_location VARCHAR(255),
-            delivery_location VARCHAR(255),
-            cargo_description TEXT,
-            freight_rate DECIMAL(10, 2),
-            scheduled_loading_date TIMESTAMP,
-            scheduled_unloading_date TIMESTAMP,
+            pickup_location VARCHAR(255) NOT NULL,
+            delivery_location VARCHAR(255) NOT NULL,
+            freight_rate DECIMAL(10, 2) NOT NULL,
+            scheduled_loading_date TIMESTAMP NOT NULL,
+            scheduled_unloading_date TIMESTAMP NOT NULL,
             actual_loading_date TIMESTAMP,
             actual_unloading_date TIMESTAMP,
-            status VARCHAR(50) NOT NULL,
+            status INTEGER REFERENCES order_statuses(id) ON DELETE CASCADE NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )";
