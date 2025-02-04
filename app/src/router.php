@@ -5,6 +5,9 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Controllers\UserController;
 use App\Controllers\OrderController;
 use App\Controllers\ProfileController;
+use App\Middleware\ApiKeyMiddleware;
+use App\Services\AuthService;
+use App\Services\UserService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -27,26 +30,27 @@ $app->add(function (Request $request, RequestHandlerInterface $handler): Respons
 $app->group('/api/v1', function (RouteCollectorProxy $group) {
     $group->group('/users', function (RouteCollectorProxy $group) {
         $userController = new UserController();
-        $group->post('', [$userController, 'registerUser']);
-        $group->get('', [$userController, 'getUsers']);
-        $group->get('/{id}', [$userController, 'getUserById']);
-        $group->put('/{id}', [$userController, 'updateUser']);
-        $group->delete('/{id}', [$userController, 'deleteUser']);
+        $group->post('', [$userController, 'registerUser'])->add(new ApiKeyMiddleware(new AuthService(), 'registerUser'));
+        $group->get('', [$userController, 'getUsers'])->add(new ApiKeyMiddleware(new AuthService(), 'getUsers'));
+        $group->get('/{id}', [$userController, 'getUserById'])->add(new ApiKeyMiddleware(new AuthService(), 'getUserById'));
+        $group->put('/{id}', [$userController, 'updateUser'])->add(new ApiKeyMiddleware(new AuthService(), 'updateUser'));
+        $group->delete('/{id}', [$userController, 'deleteUser'])->add(new ApiKeyMiddleware(new AuthService(), 'deleteUser'));
     });
 
     $group->group('/profiles', function (RouteCollectorProxy $group) {
         $profileController = new ProfileController();
-        $group->post('', [$profileController, 'createProfile']);
-        $group->get('', [$profileController, 'getProfiles']);
-        $group->get('/{userId}', [$profileController, 'getProfileByUserId']);
-        $group->put('/{id}', [$profileController, 'updateProfile']);
-        $group->delete('/{id}', [$profileController, 'deleteProfile']);
+        $group->post('', [$profileController, 'createProfile'])->add(new ApiKeyMiddleware(new AuthService(), 'createProfile'));
+        $group->get('', [$profileController, 'getProfiles'])->add(new ApiKeyMiddleware(new AuthService(), 'getProfiles'));
+        $group->get('/{userId}', [$profileController, 'getProfileByUserId'])->add(new ApiKeyMiddleware(new AuthService(), 'getProfileByUserId'));
+        $group->put('/{id}', [$profileController, 'updateProfile'])->add(new ApiKeyMiddleware(new AuthService(), 'updateProfile'));
+        $group->delete('/{id}', [$profileController, 'deleteProfile'])->add(new ApiKeyMiddleware(new AuthService(), 'deleteProfile'));
     });
 
     $group->group('/orders', function (RouteCollectorProxy $group) {
         $orderController = new OrderController();
-        $group->post('', [$orderController, 'createOrder']);
-        $group->get('', [$orderController, 'getAllOrders']);
+        $group->post('', [$orderController, 'createOrder'])->add(new ApiKeyMiddleware(new AuthService(), 'createOrder'));
+        $group->get('', [$orderController, 'getAllOrders'])->add(new ApiKeyMiddleware(new AuthService(), 'getAllOrders'));
+        $group->put('/{id}/status', [$orderController, 'updateOrderStatus'])->add(new ApiKeyMiddleware(new AuthService(), 'updateOrderStatus'));
     });
 });
 

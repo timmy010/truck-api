@@ -30,13 +30,14 @@ class CreateOrderStatusTable
         ];
 
         foreach ($statuses as $status) {
-            $db->exec("INSERT INTO order_statuses (title) VALUES ('$status')");
+            $stmt = $db->prepare("INSERT INTO order_statuses (title) VALUES (:title) ON CONFLICT (title) DO NOTHING");
+            $stmt->execute([':title' => $status]);
         }
     }
 
     public function down()
     {
         $db = (new Database())->getConnection();
-        $db->exec("DROP TABLE IF EXISTS order_statuses");
+        $db->exec("DROP TABLE IF EXISTS order_statuses CASCADE");
     }
 }

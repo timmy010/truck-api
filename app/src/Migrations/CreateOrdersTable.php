@@ -28,9 +28,9 @@ class CreateOrdersTable
 
         $db->exec($sql);
 
-        $db->exec("CREATE INDEX idx_customer_id ON orders (customer_id)");
-        $db->exec("CREATE INDEX idx_carrier_id ON orders (carrier_id)");
-        $db->exec("CREATE INDEX idx_status ON orders (status)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_customer_id ON orders (customer_id)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_carrier_id ON orders (carrier_id)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_status ON orders (status)");
     }
 
     public function down()
@@ -39,6 +39,6 @@ class CreateOrdersTable
         $db->exec("DROP INDEX IF EXISTS idx_customer_id");
         $db->exec("DROP INDEX IF EXISTS idx_carrier_id");
         $db->exec("DROP INDEX IF EXISTS idx_status");
-        $db->exec("DROP TABLE IF EXISTS orders");
+        $db->exec("DROP TABLE IF EXISTS orders CASCADE");
     }
 }

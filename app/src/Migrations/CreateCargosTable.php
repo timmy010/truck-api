@@ -21,13 +21,13 @@ class CreateCargosTable
             cost DECIMAL(10, 2),
             order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )";
 
         $db->exec($sql);
 
-        $db->exec("CREATE INDEX idx_title ON cargos (title)");
-        $db->exec("CREATE INDEX idx_order_id ON cargos (order_id)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_title ON cargos (title)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_order_id ON cargos (order_id)");
     }
 
     public function down()
@@ -35,6 +35,6 @@ class CreateCargosTable
         $db = (new Database())->getConnection();
         $db->exec("DROP INDEX IF EXISTS idx_title");
         $db->exec("DROP INDEX IF EXISTS idx_order_id");
-        $db->exec("DROP TABLE IF EXISTS cargos");
+        $db->exec("DROP TABLE IF EXISTS cargos CASCADE");
     }
 }

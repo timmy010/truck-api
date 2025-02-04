@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Services\UserService;
 use Exception;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use GuzzleHttp\Psr7\Utils;
@@ -27,15 +28,12 @@ class UserController extends AbstractController
     {
         $data = $request->getParsedBody();
 
-        if (!isset($data['name'], $data['email'], $data['password'], $data['role'])) {
-            return $response->withStatus(400)->withBody(Utils::streamFor('Invalid input'));
-        }
-
         try {
             $userId = $this->userService->registerUser($data);
-            $this->logger->logInfo('User registered successfully', ['user_id' => $userId]);
 
             return $this->prepareJsonResponse($response, ['user_id' => $userId]);
+        } catch (InvalidArgumentException $e) {
+            return $response->withStatus(404)->withBody(Utils::streamFor('Invalid input'));
         } catch (Exception $e) {
             $this->logger->logError('User registration failed', ['error' => $e->getMessage()]);
             return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
@@ -47,7 +45,7 @@ class UserController extends AbstractController
         try {
             $users = $this->userService->getAllUsers();
 
-            if (count($users) > 0) {
+            if ($users !== false && count($users) > 0) {
                 $response->getBody()->write(json_encode($users));
                 return $response->withHeader('Content-Type', 'application/json');
             }
@@ -62,6 +60,12 @@ class UserController extends AbstractController
     public function getUserById(Request $request, Response $response, $args): Response
     {
         try {
+            $currentUser = $request->getAttribute('user');
+
+            if ($currentUser['id'] !== (int) $args['id']) {
+                return $response->withStatus(403)->withBody(Utils::streamFor('Access denied.'));
+            }
+
             $user = $this->userService->getUserById($args['id']);
 
             if ($user) {
@@ -79,8 +83,13 @@ class UserController extends AbstractController
     public function updateUser(Request $request, Response $response, $args): Response
     {
         try {
+            $currentUser = $request->getAttribute('user');
+
+            if ($currentUser['id'] !== (int) $args['id']) {
+                return $response->withStatus(403)->withBody(Utils::streamFor('Access denied.'));
+            }
+
             $data = $request->getParsedBody();
-            $this->logger->logInfo('User update', ['data' => $data, 'id' => $args['id']]);
             $user = $this->userService->updateUser($args['id'], $data);
 
             if ($user) {

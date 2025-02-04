@@ -6,7 +6,7 @@ use Predis\Client;
 
 class RedisService
 {
-    private $client;
+    private Client $client;
 
     public function __construct()
     {
@@ -17,12 +17,12 @@ class RedisService
         ]);
     }
 
-    public function setValue($key, $value)
+    public function setValue($key, $value): void
     {
         $this->client->set($key, $value);
     }
 
-    public function getValue($key)
+    public function getValue($key): ?string
     {
         return $this->client->get($key);
     }

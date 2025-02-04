@@ -1,17 +1,19 @@
 <?php
 
-use App\Migrations\CreateAdminRolePermissionsTable;
+use App\Migrations\CreateCargosTable;
 use App\Migrations\CreateOrdersTable;
+use App\Migrations\CreateOrderStatusTable;
 use App\Migrations\CreateProfilesTable;
 use App\Migrations\CreateUsersTable;
 
 require __DIR__ . '/../vendor/autoload.php';
 
 $migrations = [
+    new CreateOrderStatusTable(),
     new CreateUsersTable(),
     new CreateOrdersTable(),
+    new CreateCargosTable(),
     new CreateProfilesTable(),
-    new CreateAdminRolePermissionsTable(),
 ];
 
 $successCount = 0;
