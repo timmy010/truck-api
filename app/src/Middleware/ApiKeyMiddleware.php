@@ -13,12 +13,11 @@ use InvalidArgumentException;
 class ApiKeyMiddleware implements MiddlewareInterface
 {
     private AuthService $authService;
-    private array $allowedRoles;
     private string $action;
 
-    public function __construct(AuthService $authService, string $action)
+    public function __construct(string $action)
     {
-        $this->authService = $authService;
+        $this->authService = new AuthService();
         $this->action = $action;
     }
 
