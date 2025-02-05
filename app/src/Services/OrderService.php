@@ -2,22 +2,61 @@
 
 namespace App\Services;
 
+use Exception;
+use DateTime;
 use App\Models\Order;
 use InvalidArgumentException;
+use App\Loggers\OrderLogger;
 
 class OrderService
 {
     private Order $orderModel;
+    private CargoService $cargoService;
+    protected OrderLogger $logger;
 
     public function __construct()
     {
         $this->orderModel = new Order();
+        $this->cargoService = new CargoService();
+        $this->logger = new OrderLogger(__DIR__ . '/../logs/order.log');
     }
 
-    public function createOrder(array $data): int
+    /**
+     * @throws Exception
+     */
+    public function createOrder(array $data, int $customerId): int
     {
-        $this->validateOrderData($data);
-        return $this->orderModel->create($data);
+        $orderData = [
+            'customer_id' => $customerId,
+            'pickup_location' => $data['pickup_location'],
+            'delivery_location' => $data['delivery_location'],
+            'freight_rate' => $data['freight_rate'],
+            'scheduled_loading_date' => (new DateTime($data['scheduled_loading_date']))->format('Y-m-d'),
+            'scheduled_unloading_date' => (new DateTime($data['scheduled_unloading_date']))->format('Y-m-d'),
+            'status' => 1
+        ];
+
+        $orderId = $this->orderModel->create($orderData);
+
+        $cargoData = [
+            'title' => $data['cargo_title'],
+            'volume' => $data['cargo_volume'],
+            'weight' => $data['cargo_weight'],
+            'length' => $data['cargo_length'],
+            'width' => $data['cargo_width'],
+            'depth' => $data['cargo_depth'],
+            'cost' => $data['cargo_cost'],
+            'order_id' => $orderId,
+        ];
+
+        try {
+            $this->cargoService->createCargo($cargoData);
+        } catch (Exception $e) {
+            $this->orderModel->delete($orderId);
+            throw new Exception('Cargo creation failed: ' . $e->getMessage());
+        }
+
+        return $orderId;
     }
 
     public function getAllOrders(): array
@@ -41,27 +80,5 @@ class OrderService
     public function deleteOrder(int $id): bool
     {
         return $this->orderModel->delete($id);
-    }
-
-    private function validateOrderData(array $data): void
-    {
-        if (empty($data['customer_id'])) {
-            throw new InvalidArgumentException('Customer ID is required.');
-        }
-        if (empty($data['pickup_location'])) {
-            throw new InvalidArgumentException('Pickup location is required.');
-        }
-        if (empty($data['delivery_location'])) {
-            throw new InvalidArgumentException('Delivery location is required.');
-        }
-        if (empty($data['freight_rate'])) {
-            throw new InvalidArgumentException('Freight rate is required.');
-        }
-        if (empty($data['scheduled_loading_date'])) {
-            throw new InvalidArgumentException('Scheduled loading date is required.');
-        }
-        if (empty($data['scheduled_unloading_date'])) {
-            throw new InvalidArgumentException('Scheduled unloading date is required.');
-        }
     }
 }

@@ -17,14 +17,10 @@ class Order
 
     public function create(array $data): int
     {
-        $data['status'] = 'new';
-
-        $stmt = $this->db->prepare("INSERT INTO {$this->table} (customer_id, carrier_id, pickup_location, 
-        delivery_location, freight_rate, scheduled_loading_date, scheduled_unloading_date, 
-        actual_loading_date, actual_unloading_date, status, created_at, updated_at) 
-        VALUES (:customer_id, :carrier_id, :pickup_location, :delivery_location, :freight_rate, 
-        :scheduled_loading_date, :scheduled_unloading_date, :actual_loading_date, 
-        :actual_unloading_date, :status, NOW(), NOW())");
+        $stmt = $this->db->prepare("INSERT INTO {$this->table} (customer_id, pickup_location, 
+        delivery_location, freight_rate, scheduled_loading_date, scheduled_unloading_date, status, created_at, updated_at) 
+        VALUES (:customer_id, :pickup_location, :delivery_location, :freight_rate, 
+        :scheduled_loading_date, :scheduled_unloading_date, :status, NOW(), NOW())");
 
         $stmt->execute($data);
         return $this->db->lastInsertId();

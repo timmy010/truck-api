@@ -16,7 +16,6 @@ class CargoService
 
     public function createCargo(array $data): int
     {
-        $this->validateCargoData($data);
         return $this->cargoModel->create($data);
     }
 
@@ -46,19 +45,5 @@ class CargoService
     public function deleteCargo(int $id): bool
     {
         return $this->cargoModel->delete($id);
-    }
-
-    private function validateCargoData(array $data): void
-    {
-        if (empty($data['title'])) {
-            throw new InvalidArgumentException('Title is required.');
-        }
-        if (empty($data['volume'])) {
-            throw new InvalidArgumentException('Volume is required.');
-        }
-        if (empty($data['weight'])) {
-            throw new InvalidArgumentException('Weight is required.');
-        }
-        // Additional validation can be added as necessary.
     }
 }
