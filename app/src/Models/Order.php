@@ -32,6 +32,29 @@ class Order
         return $stmt->fetchAll();
     }
 
+    public function getAllByFilter(array $filters = []): array
+    {
+        $query = "SELECT * FROM {$this->table}";
+
+        $params = [];
+
+        if (!empty($filters)) {
+            $filterConditions = [];
+
+            foreach ($filters as $column => $value) {
+                $filterConditions[] = "{$column} = :{$column}";
+                $params[$column] = $value;
+            }
+
+            $query .= " WHERE " . implode(' AND ', $filterConditions);
+        }
+
+        $stmt = $this->db->prepare($query);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
     public function getById(int $id): ?array
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = :id");
@@ -41,7 +64,6 @@ class Order
 
     public function update(int $id, array $data): bool
     {
-        // Ensure essential fields are present before updating
         if (!isset($data['customer_id'], $data['pickup_location'], $data['delivery_location'], $data['freight_rate'], $data['scheduled_loading_date'], $data['scheduled_unloading_date'], $data['status'])) {
             throw new InvalidArgumentException('Missing required fields for update.');
         }
@@ -60,6 +82,32 @@ class Order
             updated_at = NOW() 
             WHERE id = :id";
 
+        $data['id'] = $id;
+
+        $stmt = $this->db->prepare($query);
+        return $stmt->execute($data);
+    }
+
+    public function patch(int $id, array $data): bool
+    {
+        $fields = [];
+        foreach ($data as $key => $value) {
+            if (in_array($key, [
+                'carrier_id',
+                'freight_rate',
+                'actual_loading_date',
+                'actual_unloading_date',
+                'status'
+            ])) {
+                $fields[] = "$key = :$key";
+            }
+        }
+
+        if (empty($fields)) {
+            return false;
+        }
+
+        $query = "UPDATE {$this->table} SET " . implode(", ", $fields) . ", updated_at = NOW() WHERE id = :id";
         $data['id'] = $id;
 
         $stmt = $this->db->prepare($query);

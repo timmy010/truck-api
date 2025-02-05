@@ -43,12 +43,12 @@ class AuthService
         }
 
         return match ($action) {
-            'getUserById', 'updateUser', 'getProfileByUserId', 'updateProfile' => in_array(
+            'getUserById', 'updateUser', 'getProfileByUserId', 'updateProfile', 'getAllOrders' => in_array(
                 $role,
                 ['customer', 'carrier']
             ),
             'createOrder' => $role === 'customer',
-            'updateOrderStatus', 'getAllOrders' => $role === 'carrier',
+            'updateOrderStatus', 'getOrderToWork' => $role === 'carrier',
             default => false,
         };
     }

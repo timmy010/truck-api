@@ -50,7 +50,10 @@ $app->group('/api/v1', function (RouteCollectorProxy $group) {
         $orderController = new OrderController();
         $group->post('', [$orderController, 'createOrder'])->add(new ApiKeyMiddleware('createOrder'));
         $group->get('', [$orderController, 'getAllOrders'])->add(new ApiKeyMiddleware('getAllOrders'));
-        $group->put('/{id}/status', [$orderController, 'updateOrderStatus'])->add(new ApiKeyMiddleware('updateOrderStatus'));
+        $group->get('/{id}', [$orderController, 'getOrderById'])->add(new ApiKeyMiddleware('getOrderById'));
+        $group->put('/{id}/{status}', [$orderController, 'updateOrderStatus'])->add(new ApiKeyMiddleware('updateOrderStatus'));
+        $group->put('/{id}', [$orderController, 'getOrderToWork'])->add(new ApiKeyMiddleware('getOrderToWork'));
+        $group->delete('/{id}', [$orderController, 'deleteOrder'])->add(new ApiKeyMiddleware('deleteOrder'));
     });
 });
 

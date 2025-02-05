@@ -5,8 +5,8 @@ namespace App\Services;
 use Exception;
 use DateTime;
 use Generator;
-use App\Models\Order;
 use InvalidArgumentException;
+use App\Models\Order;
 use App\Loggers\OrderLogger;
 
 class OrderService
@@ -25,10 +25,10 @@ class OrderService
     /**
      * @throws Exception
      */
-    public function createOrder(array $data, int $customerId): int
+    public function createOrder(array $data): int
     {
         $orderData = [
-            'customer_id' => $customerId,
+            'customer_id' => $data['customer_id'],
             'pickup_location' => $data['pickup_location'],
             'delivery_location' => $data['delivery_location'],
             'freight_rate' => $data['freight_rate'],
@@ -52,16 +52,13 @@ class OrderService
         return $orderId;
     }
 
-    private function getCargos(array $cargos): Generator
+    public function getAllOrders(array $user): array
     {
-        foreach ($cargos as $cargo) {
-            yield $cargo;
-        }
-    }
-
-    public function getAllOrders(): array
-    {
-        return $this->orderModel->getAll();
+        return match ($user['role']) {
+            'customer' => $this->orderModel->getAllByFilter(['customer_id' => $user['id']]),
+            'carrier' => $this->orderModel->getAllByFilter(['carrier_id' => $user['id']]),
+            default => $this->orderModel->getAll(),
+        };
     }
 
     public function getOrderById(int $id): ?array
@@ -69,16 +66,50 @@ class OrderService
         return $this->orderModel->getById($id);
     }
 
+    /**
+     * @throws Exception
+     */
+    public function updateOrderStatus(int $orderId, int $statusId, int $userId): bool
+    {
+        $order = $this->getOrderById($orderId);
+        if ($order === null) {
+            throw new InvalidArgumentException('Order not found');
+        }
+
+        if ($order['carrier_id'] !== $userId) {
+            throw new Exception('Access denied');
+        }
+
+        return $this->updateOrder($orderId, ['status' => $statusId]);
+    }
+
+    public function getOrderToWork(int $orderId, int $userId): bool
+    {
+        $order = $this->getOrderById($orderId);
+        if ($order === null) {
+            throw new InvalidArgumentException('Order not found');
+        }
+
+        return $this->updateOrder($orderId, [
+            'status' => 2,
+            'carrier_id' => $userId
+        ]);
+    }
+
     public function updateOrder(int $id, array $data): bool
     {
-        if (!isset($data['customer_id'])) {
-            throw new InvalidArgumentException('Customer ID is required for update.');
-        }
-        return $this->orderModel->update($id, $data);
+        return $this->orderModel->patch($id, $data);
     }
 
     public function deleteOrder(int $id): bool
     {
         return $this->orderModel->delete($id);
+    }
+
+    private function getCargos(array $cargos): Generator
+    {
+        foreach ($cargos as $cargo) {
+            yield $cargo;
+        }
     }
 }

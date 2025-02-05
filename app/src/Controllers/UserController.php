@@ -26,14 +26,19 @@ class UserController extends AbstractController
 
     public function registerUser(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody();
-
         try {
+            $data = $request->getParsedBody();
+
+            if ($data === null) {
+                throw new InvalidArgumentException('Invalid input');
+            }
+
             $userId = $this->userService->registerUser($data);
 
             return $this->prepareJsonResponse($response, ['user_id' => $userId]);
         } catch (InvalidArgumentException $e) {
-            return $response->withStatus(404)->withBody(Utils::streamFor('Invalid input'));
+            $this->logger->logError('User registration failed', ['error' => $e->getMessage()]);
+            return $response->withStatus(404)->withBody(Utils::streamFor("Invalid input: {$e->getMessage()}"));
         } catch (Exception $e) {
             $this->logger->logError('User registration failed', ['error' => $e->getMessage()]);
             return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
