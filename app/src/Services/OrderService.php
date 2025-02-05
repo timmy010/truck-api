@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Exception;
 use DateTime;
+use Generator;
 use App\Models\Order;
 use InvalidArgumentException;
 use App\Loggers\OrderLogger;
@@ -38,25 +39,24 @@ class OrderService
 
         $orderId = $this->orderModel->create($orderData);
 
-        $cargoData = [
-            'title' => $data['cargo_title'],
-            'volume' => $data['cargo_volume'],
-            'weight' => $data['cargo_weight'],
-            'length' => $data['cargo_length'],
-            'width' => $data['cargo_width'],
-            'depth' => $data['cargo_depth'],
-            'cost' => $data['cargo_cost'],
-            'order_id' => $orderId,
-        ];
-
         try {
-            $this->cargoService->createCargo($cargoData);
+            foreach ($this->getCargos($data['cargos']) as $cargo) {
+                $cargo['order_id'] = $orderId;
+                $this->cargoService->createCargo($cargo);
+            }
         } catch (Exception $e) {
             $this->orderModel->delete($orderId);
             throw new Exception('Cargo creation failed: ' . $e->getMessage());
         }
 
         return $orderId;
+    }
+
+    private function getCargos(array $cargos): Generator
+    {
+        foreach ($cargos as $cargo) {
+            yield $cargo;
+        }
     }
 
     public function getAllOrders(): array
