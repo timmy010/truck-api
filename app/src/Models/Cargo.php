@@ -16,12 +16,12 @@ class Cargo
         $this->db = (new Database())->getConnection();
     }
 
-    public function create(array $data): false|string
+    public function create(array $data): false|int
     {
         $stmt = $this->db->prepare("INSERT INTO {$this->table} (title, volume, weight, length, width, depth, cost, order_id, created_at, updated_at) 
             VALUES (:title, :volume, :weight, :length, :width, :depth, :cost, :order_id, NOW(), NOW())");
         $stmt->execute($data);
-        return $this->db->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
 
     public function getAll(): false|array

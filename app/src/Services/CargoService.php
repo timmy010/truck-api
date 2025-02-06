@@ -7,7 +7,7 @@ use InvalidArgumentException;
 
 class CargoService
 {
-    private Cargo $cargoModel;
+    public Cargo $cargoModel;
 
     public function __construct()
     {

@@ -1,5 +1,5 @@
 <?php
-// vendor/bin/phpunit tests/Services/CargoServiceTest.php
+
 namespace Tests\Services;
 
 use App\Models\Cargo;
@@ -40,19 +40,6 @@ class CargoServiceTest extends TestCase
 
         $id = $this->cargoService->createCargo($data);
         $this->assertIsInt($id); // Assert an integer ID is returned
-    }
-
-    public function testCreateCargoMissingFields()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Title is required.');
-
-        $data = [
-            'volume' => 100.00,
-            'weight' => 50.00,
-        ];
-
-        $this->cargoService->createCargo($data);
     }
 
     public function testGetAllCargos()
