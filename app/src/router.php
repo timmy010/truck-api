@@ -4,10 +4,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use App\Controllers\UserController;
 use App\Controllers\OrderController;
-use App\Controllers\ProfileController;
 use App\Middleware\ApiKeyMiddleware;
-use App\Services\AuthService;
-use App\Services\UserService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -35,15 +32,6 @@ $app->group('/api/v1', function (RouteCollectorProxy $group) {
         $group->get('/{id}', [$userController, 'getUserById'])->add(new ApiKeyMiddleware('getUserById'));
         $group->put('/{id}', [$userController, 'updateUser'])->add(new ApiKeyMiddleware('updateUser'));
         $group->delete('/{id}', [$userController, 'deleteUser'])->add(new ApiKeyMiddleware('deleteUser'));
-    });
-
-    $group->group('/profiles', function (RouteCollectorProxy $group) {
-        $profileController = new ProfileController();
-        $group->post('', [$profileController, 'createProfile'])->add(new ApiKeyMiddleware('createProfile'));
-        $group->get('', [$profileController, 'getProfiles'])->add(new ApiKeyMiddleware('getProfiles'));
-        $group->get('/{userId}', [$profileController, 'getProfileByUserId'])->add(new ApiKeyMiddleware('getProfileByUserId'));
-        $group->put('/{id}', [$profileController, 'updateProfile'])->add(new ApiKeyMiddleware('updateProfile'));
-        $group->delete('/{id}', [$profileController, 'deleteProfile'])->add(new ApiKeyMiddleware('deleteProfile'));
     });
 
     $group->group('/orders', function (RouteCollectorProxy $group) {
