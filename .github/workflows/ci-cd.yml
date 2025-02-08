@@ -1,0 +1,52 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+
+      - name: Copy files to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p /var/www/html"
+          scp -o StrictHostKeyChecking=no -r ./docker-compose.prod.yml ./nginx.conf ./app ./fpm ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/html/
+
+      - name: Set permissions on VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
+            sudo chown -R www-data:www-data /var/www/html
+            sudo chmod -R 755 /var/www/html/app/tests
+            sudo find /var/www/html/app/tests -type f -exec chmod 644 {} \;
+          "
+
+      - name: Create .env file
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            cat > /var/www/html/.env <<EOL
+                POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
+                POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}
+                POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+                ADMIN_USER_EMAIL=${{ secrets.ADMIN_USER_EMAIL }}
+                ADMIN_USER_PASSWORD=${{ secrets.ADMIN_USER_PASSWORD }}
+              EOL
+            EOF
+
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
+              cd /var/www/html && docker-compose -f docker-compose.prod.yml down && docker-compose -f docker-compose.prod.yml up --build -d
+            "

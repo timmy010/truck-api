@@ -6,9 +6,10 @@ services:
       context: .
       dockerfile: fpm/Dockerfile
     container_name: php_app
+    env_file:
+      - .env
     volumes:
         - ./app:/var/www/html
-        - ./.env:/var/www/html/.env
     networks:
         - app-network
     depends_on:

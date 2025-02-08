@@ -4,7 +4,6 @@ namespace App;
 
 use PDO;
 use PDOException;
-use Dotenv\Dotenv;
 use Exception;
 
 class Database
@@ -13,9 +12,6 @@ class Database
 
     public function __construct()
     {
-        $dotenv = Dotenv::createImmutable(dirname(__DIR__, 1));
-        $dotenv->load();
-
         $dsn = 'pgsql:host=' . $_ENV['POSTGRES_HOST'] . ';dbname=' . $_ENV['POSTGRES_DATABASE'] . ';port=5432';
         $username = $_ENV['POSTGRES_USER'];
         $password = $_ENV['POSTGRES_PASSWORD'];
