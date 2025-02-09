@@ -24,6 +24,11 @@ class CargoService
         return $this->cargoModel->getAll();
     }
 
+    public function getAllCargosByFilter(array $filter = []): array
+    {
+        return $this->cargoModel->getAllByFilter($filter);
+    }
+
     public function getCargoById(int $id): ?array
     {
         return $this->cargoModel->getById($id);

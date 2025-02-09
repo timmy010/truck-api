@@ -63,7 +63,13 @@ class OrderService
 
     public function getOrderById(int $id): ?array
     {
-        return $this->orderModel->getById($id);
+        $order = $this->orderModel->getById($id);
+        if ($order === null) {
+            return null;
+        }
+        $cargos = $this->cargoService->getAllCargosByFilter(['order_id' => $order['id']]);
+        $order['cargos'] = $cargos;
+        return $order;
     }
 
     /**
@@ -90,6 +96,10 @@ class OrderService
             throw new InvalidArgumentException('Order not found');
         }
 
+        if ($order['status'] !== 1) {
+            throw new InvalidArgumentException('Order in work');
+        }
+
         return $this->updateOrder($orderId, [
             'status' => 2,
             'carrier_id' => $userId
@@ -98,7 +108,7 @@ class OrderService
 
     public function updateOrder(int $id, array $data): bool
     {
-        return $this->orderModel->patch($id, $data);
+        return $this->orderModel->put($id, $data);
     }
 
     public function deleteOrder(int $id): bool

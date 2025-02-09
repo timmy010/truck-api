@@ -88,7 +88,7 @@ class Order
         return $stmt->execute($data);
     }
 
-    public function patch(int $id, array $data): bool
+    public function put(int $id, array $data): bool
     {
         $fields = [];
         foreach ($data as $key => $value) {
