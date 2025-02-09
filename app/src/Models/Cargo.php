@@ -30,6 +30,29 @@ class Cargo
         return $stmt->fetchAll();
     }
 
+    public function getAllByFilter(array $filters = []): array
+    {
+        $query = "SELECT * FROM {$this->table}";
+
+        $params = [];
+
+        if (!empty($filters)) {
+            $filterConditions = [];
+
+            foreach ($filters as $column => $value) {
+                $filterConditions[] = "{$column} = :{$column}";
+                $params[$column] = $value;
+            }
+
+            $query .= " WHERE " . implode(' AND ', $filterConditions);
+        }
+
+        $stmt = $this->db->prepare($query);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
     public function getById(int $id)
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = :id");

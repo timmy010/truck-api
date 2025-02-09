@@ -58,6 +58,33 @@ class OrderController extends AbstractController
         }
     }
 
+    public function getOrderById(Request $request, Response $response, array $args): Response
+    {
+        try {
+            $orderId = $args['id'];
+            $currentUser = $request->getAttribute('user');
+
+            $order = $this->orderService->getOrderById($orderId);
+
+            if ($order === null) {
+                return $response->withStatus(404)->withBody(Utils::streamFor('Not Found'));
+            }
+
+            if (
+                $currentUser['id'] === (int)$order['customer_id']
+                || $currentUser['id'] === (int)$order['carrier_id']
+                || $currentUser['id'] === 1
+            ) {
+                $response->getBody()->write(json_encode($order));
+                return $response->withHeader('Content-Type', 'application/json');
+            }
+            return $response->withStatus(403)->withBody(Utils::streamFor('Access denied.'));
+        } catch (Throwable $e) {
+            $this->logger->logError('Get all orders failed', ['error' => $e->getMessage()]);
+            return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
+        }
+    }
+
     public function updateOrderStatus(Request $request, Response $response, array $args): Response
     {
         $orderId = $args['id'];
@@ -91,11 +118,11 @@ class OrderController extends AbstractController
 
             return $response->withStatus(200)->withBody(Utils::streamFor("Order {$orderId} get in work"));
         } catch (InvalidArgumentException $e) {
-            $this->logger->logError('Get order to work failed. Order not found', [
+            $this->logger->logError('Get order to work failed', [
                 'orderId' => $orderId,
                 'error' => $e->getMessage()
             ]);
-            return $response->withStatus(404)->withBody(Utils::streamFor("Order not found"));
+            return $response->withStatus(404)->withBody(Utils::streamFor($e->getMessage()));
         } catch (Throwable $e) {
             $this->logger->logError('Get order to work failed. Other', [
                 'orderId' => $orderId,
