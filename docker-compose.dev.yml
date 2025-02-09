@@ -10,11 +10,11 @@ services:
       - .env
     volumes:
         - ./app:/var/www/html
+        - /var/www/html/vendor
     networks:
         - app-network
     depends_on:
         - redis
-        - rabbitmq
         - postgres
 
   nginx:
@@ -34,15 +34,6 @@ services:
   redis:
     image: redis:latest
     container_name: redis
-    networks:
-        - app-network
-
-  rabbitmq:
-    image: rabbitmq:management
-    container_name: rabbitmq
-    ports:
-        - "15672:15672"
-        - "5672:5672"
     networks:
         - app-network
 

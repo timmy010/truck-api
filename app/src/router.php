@@ -5,6 +5,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use App\Controllers\UserController;
 use App\Controllers\OrderController;
 use App\Middleware\ApiKeyMiddleware;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -22,6 +23,21 @@ $app->add(function (Request $request, RequestHandlerInterface $handler): Respons
         ->withHeader('Access-Control-Allow-Origin', '*')
         ->withHeader('Access-Control-Allow-Headers', 'Content-Type')
         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+});
+
+$app->get('/', function (Request $request, Response $response): Response {
+    return $response->withHeader('Content-Type', 'text/html')
+        ->withBody(Utils::streamFor(file_get_contents(__DIR__ . '/../public/index.php')));
+});
+
+$app->get('/assets/{file}', function ($request, $response, $args) {
+    $filePath = __DIR__ . '/../public/assets/' . $args['file'];
+    if (file_exists($filePath)) {
+        $mimeType = mime_content_type($filePath);
+        return $response->withHeader('Content-Type', $mimeType)
+            ->withBody(Utils::streamFor(file_get_contents($filePath)));
+    }
+    return $response->withStatus(404)->write('File not found');
 });
 
 $app->group('/api/v1', function (RouteCollectorProxy $group) {
