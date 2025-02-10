@@ -64,9 +64,7 @@ class UserController extends AbstractController
     public function getUserById(Request $request, Response $response, $args): Response
     {
         try {
-            $currentUser = $request->getAttribute('user');
-
-            if ($currentUser['id'] !== (int) $args['id']) {
+            if ($this->isUserParamIncorrect($request, $response, $args)) {
                 return $response->withStatus(403)->withBody(Utils::streamFor('Access denied.'));
             }
 
@@ -87,9 +85,7 @@ class UserController extends AbstractController
     public function updateUser(Request $request, Response $response, $args): Response
     {
         try {
-            $currentUser = $request->getAttribute('user');
-
-            if ($currentUser['id'] !== (int) $args['id']) {
+            if ($this->isUserParamIncorrect($request, $response, $args)) {
                 return $response->withStatus(403)->withBody(Utils::streamFor('Access denied.'));
             }
 
