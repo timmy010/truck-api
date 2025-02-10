@@ -18,7 +18,6 @@ class UserController extends AbstractController
 
     public function __construct()
     {
-        parent::__construct();
         $this->userService = new UserService();
 
         $this->logger = new UserLogger(__DIR__ . '/../logs/user.log');

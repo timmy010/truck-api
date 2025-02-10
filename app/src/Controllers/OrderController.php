@@ -18,7 +18,6 @@ class OrderController extends AbstractController
 
     public function __construct()
     {
-        parent::__construct();
         $this->orderService = new OrderService();
         $this->logger = new OrderLogger(__DIR__ . '/../logs/order.log');
     }
