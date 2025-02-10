@@ -43,7 +43,12 @@ class AuthService
         }
 
         return match ($action) {
-            'getUserById', 'updateUser', 'getProfileByUserId', 'updateProfile', 'getAllOrders' => in_array(
+            'getUserById',
+            'updateUser',
+            'getProfileByUserId',
+            'updateProfile',
+            'getAllOrders',
+            'getOrderById' => in_array(
                 $role,
                 ['customer', 'carrier']
             ),

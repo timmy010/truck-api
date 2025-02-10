@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Exception;
 use DateTime;
 use Generator;
 use InvalidArgumentException;
 use App\Models\Order;
 use App\Loggers\OrderLogger;
+use Throwable;
 
 class OrderService
 {
@@ -27,6 +29,17 @@ class OrderService
      */
     public function createOrder(array $data): int
     {
+        $userModel = new User();
+        $user = $userModel->getById($data['customer_id']);
+
+        if ($user === null) {
+            throw new InvalidArgumentException('Customer not found');
+        }
+
+        if ($user['role'] !== 'customer') {
+            throw new InvalidArgumentException('User not customer');
+        }
+
         $orderData = [
             'customer_id' => $data['customer_id'],
             'pickup_location' => $data['pickup_location'],

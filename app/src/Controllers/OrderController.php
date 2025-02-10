@@ -3,13 +3,14 @@
 namespace App\Controllers;
 
 use App\Services\OrderService;
+use App\Loggers\OrderLogger;
 use InvalidArgumentException;
 use Exception;
+use Throwable;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use GuzzleHttp\Psr7\Utils;
-use App\Loggers\OrderLogger;
-use Throwable;
+
 
 class OrderController extends AbstractController
 {
@@ -31,7 +32,7 @@ class OrderController extends AbstractController
 
             return $this->prepareJsonResponse($response, ['order_id' => $orderId]);
         } catch (InvalidArgumentException $e) {
-            return $response->withStatus(404)->withBody(Utils::streamFor('Invalid input'));
+            return $response->withStatus(404)->withBody(Utils::streamFor('Invalid input: ' . $e->getMessage()));
         } catch (Throwable $e) {
             $this->logger->logError('Order created failed', ['error' => $e->getMessage()]);
             return $response->withStatus(500)->withBody(Utils::streamFor('Internal Server Error'));
