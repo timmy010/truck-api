@@ -6,7 +6,7 @@ class OrderLogger extends AbstractLogger
 {
     public function __construct(string $path)
     {
-        parent::__construct('user_logger', $path);
+        parent::__construct('order_logger', $path);
     }
 
     public function logInfo(string $message, array $context = []): void

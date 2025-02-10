@@ -32,7 +32,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
             sudo chown -R www-data:www-data /var/www/html
-            sudo chmod -R 755 /var/www/html/app/tests
+            sudo chmod -R 755 /var/www/html/
             sudo find /var/www/html/app/tests -type f -exec chmod 644 {} \;
           "
 
